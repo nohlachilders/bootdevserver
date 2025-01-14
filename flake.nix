@@ -1,34 +1,43 @@
 {
-  description = "A basic flake with a shell";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.systems.url = "github:nix-systems/default";
-  inputs.flake-utils = {
-    url = "github:numtide/flake-utils";
-    inputs.systems.follows = "systems";
-  };
-
-  outputs =
-    { nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        bootdotdev = nixpkgs.legacyPackages.${system}.buildGoModule rec {
-            name = "bootdotdev";
-            src = nixpkgs.legacyPackages.${system}.fetchFromGitHub {
-                owner = "bootdotdev";
-                repo = "bootdev";
-                rev = "b283943";
-                sha256 = "sha256-ofXMlH1cvhfCFmgjZVMqt/kF8F9ZlD2CPH55d7dkMN8=";
-            };
-            vendorHash = "sha256-jhRoPXgfntDauInD+F7koCaJlX4XDj+jQSe/uEEYIMM=";
-
+    inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+        devenv.url = "github:cachix/devenv";
+        systems.url = "github:nix-systems/default";
+        flake-utils = {
+            url = "github:numtide/flake-utils";
+            inputs.systems.follows = "systems";
         };
+    };
 
+    outputs = { self, nixpkgs, devenv, flake-utils, ... } @ inputs:
+        flake-utils.lib.eachDefaultSystem (system: let
+            pkgs = nixpkgs.legacyPackages.${system};
+        in {
+            packages = {
+                devenv-up = self.devShells.${system}.default.config.procfileScript;
+                devenv-test = self.devShells.${system}.default.config.test;
+            };
 
-      in
-      {
-        devShells.default = pkgs.mkShell { packages = [ bootdotdev pkgs.go pkgs.jq ]; };
-      }
-    );
+            devShells.default = devenv.lib.mkShell {
+                inherit inputs pkgs;
+                modules = [
+                    ({pkgs, config, ... }: {
+                        # stuff goes here
+                        languages.go = {
+                            enable = true;
+                            enableHardeningWorkaround = true;
+                        };
+                        services.postgres = {
+                            enable = true;
+                            createDatabase = false;
+                        };
+                        packages = with pkgs; [
+                            gopls
+                            delve
+                        ];
+                    })
+                ];
+            };
+        }
+        );
 }
