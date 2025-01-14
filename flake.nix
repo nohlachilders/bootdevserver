@@ -28,12 +28,26 @@
                             enableHardeningWorkaround = true;
                         };
                         services.postgres = {
+                            listen_addresses = "127.0.0.1";
                             enable = true;
                             createDatabase = false;
                         };
                         packages = with pkgs; [
+                            sqlc
                             gopls
                             delve
+                            goose
+                            (nixpkgs.legacyPackages.${system}.buildGoModule rec {
+                                name = "bootdotdev";
+                                src = nixpkgs.legacyPackages.${system}.fetchFromGitHub {
+                                    owner = "bootdotdev";
+                                    repo = "bootdev";
+                                    rev = "b283943";
+                                    sha256 = "sha256-ofXMlH1cvhfCFmgjZVMqt/kF8F9ZlD2CPH55d7dkMN8=";
+                                };
+                                vendorHash = "sha256-jhRoPXgfntDauInD+F7koCaJlX4XDj+jQSe/uEEYIMM=";
+
+                            })
                         ];
                     })
                 ];
