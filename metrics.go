@@ -25,8 +25,3 @@ func (cfg *apiConfig) metricsResponseHandler(w http.ResponseWriter, req *http.Re
         `, hits)
 	w.Write([]byte(str))
 }
-
-func (cfg *apiConfig) metricsResetHandler(w http.ResponseWriter, req *http.Request) {
-	cfg.fileserverHits.Store(0)
-	//w.Write([]byte(str))
-}

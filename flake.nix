@@ -27,6 +27,9 @@
                             enable = true;
                             enableHardeningWorkaround = true;
                         };
+                        processes = {
+                            go-server.exec = "go run .";
+                        };
                         services.postgres = {
                             listen_addresses = "127.0.0.1";
                             enable = true;
