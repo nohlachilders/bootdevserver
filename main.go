@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,8 +12,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nohlachilders/bootdevserver/internal/database"
 )
-
-//"fmt"
 
 func main() {
 	godotenv.Load()
@@ -30,26 +29,31 @@ func main() {
 		log.Fatal("Environment variable CHIRPY_PLATFORM must be set")
 	}
 
+	const port string = ":8080"
+	const fileSystemRoot = "."
+
 	servemux := http.ServeMux{}
 	server := http.Server{
 		Handler: &servemux,
-		Addr:    ":8080",
+		Addr:    port,
 	}
 	cfg := apiConfig{
 		db:       dbQueries,
 		platform: platform,
 	}
 
-	filesystemHandler := http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir("."))))
+	filesystemHandler := http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(fileSystemRoot))))
 	servemux.Handle("/app/", filesystemHandler)
 
 	servemux.HandleFunc("POST /api/users", cfg.userCreationHandler)
 	servemux.HandleFunc("GET /api/healthz", healthResponseHandler)
-	servemux.HandleFunc("POST /api/validate_chirp", validationResponseHandler)
+	//servemux.HandleFunc("POST /api/validate_chirp", validationResponseHandler)
+	servemux.HandleFunc("POST /api/chirps", cfg.createChirpHandler)
 
 	servemux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	servemux.HandleFunc("GET /admin/metrics", cfg.metricsResponseHandler)
 
+	fmt.Printf("Serving on port %s", port)
 	log.Fatal(server.ListenAndServe())
 }
 
