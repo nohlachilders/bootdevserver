@@ -18,30 +18,43 @@ type Chirp struct {
 	UserID    uuid.NullUUID `json:"user_id"`
 }
 
-func validationResponseHandler(w http.ResponseWriter, req *http.Request) {
-	type validationRequest struct {
-		Body string `json:"body"`
-	}
-	type validationResponse struct {
-		Cleaned_body string `json:"cleaned_body,omitempty"`
-	}
-	thisRequest := validationRequest{}
-	thisResponse := validationResponse{}
-
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&thisRequest)
-
+func (cfg *apiConfig) getAllChirpsHandler(w http.ResponseWriter, req *http.Request) {
+	chirps, err := cfg.db.GetAllChirps(req.Context())
 	if err != nil {
-		respondWithError(w, 400, "Something went wrong")
+		respondWithError(w, 500, "Something went wrong")
+		return
 	}
-
-	if len(thisRequest.Body) >= 140 {
-		respondWithError(w, 400, "Chirpy too long")
+	thisChirps := make([]Chirp, len(chirps))
+	for i, chirp := range chirps {
+		thisChirps[i] = Chirp{
+			ID:        chirp.ID,
+			CreatedAt: chirp.CreatedAt,
+			UpdatedAt: chirp.UpdatedAt,
+			Body:      chirp.Body,
+			UserID:    chirp.UserID,
+		}
 	}
+	respondWithJSON(w, 200, thisChirps)
+}
 
-	cleanedBody, _ := cleanBody(thisRequest.Body)
-	thisResponse.Cleaned_body = cleanedBody
-	respondWithJSON(w, 200, thisResponse)
+func (cfg *apiConfig) getChirpHandler(w http.ResponseWriter, req *http.Request) {
+	thisId, err := uuid.Parse(req.PathValue("id"))
+	if err != nil {
+		respondWithError(w, 400, "Invalid ID")
+		return
+	}
+	chirp, err := cfg.db.GetChirp(req.Context(), thisId)
+	if err != nil {
+		respondWithError(w, 500, "Something went wrong")
+		return
+	}
+	respondWithJSON(w, 200, Chirp{
+		ID:        chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID,
+	})
 }
 
 func (cfg *apiConfig) createChirpHandler(w http.ResponseWriter, req *http.Request) {

@@ -49,6 +49,8 @@ func main() {
 	servemux.HandleFunc("GET /api/healthz", healthResponseHandler)
 	//servemux.HandleFunc("POST /api/validate_chirp", validationResponseHandler)
 	servemux.HandleFunc("POST /api/chirps", cfg.createChirpHandler)
+	servemux.HandleFunc("GET /api/chirps", cfg.getAllChirpsHandler)
+	servemux.HandleFunc("GET /api/chirps/{id}", cfg.getChirpHandler)
 
 	servemux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	servemux.HandleFunc("GET /admin/metrics", cfg.metricsResponseHandler)
