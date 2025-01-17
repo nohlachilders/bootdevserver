@@ -41,7 +41,7 @@ func main() {
 		db:       dbQueries,
 		platform: platform,
 	}
-
+	// TODO
 	filesystemHandler := http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(fileSystemRoot))))
 	servemux.Handle("/app/", filesystemHandler)
 
@@ -54,7 +54,6 @@ func main() {
 
 	servemux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	servemux.HandleFunc("GET /admin/metrics", cfg.metricsResponseHandler)
-
 	fmt.Printf("Serving on port %s", port)
 	log.Fatal(server.ListenAndServe())
 }

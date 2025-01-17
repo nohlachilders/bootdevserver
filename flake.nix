@@ -23,18 +23,24 @@
                 modules = [
                     ({pkgs, config, ... }: {
                         # stuff goes here
+                        env.GOOSE_DBSTRING = "postgres://nohlachilders@localhost:5432/chirpy";
+                        env.GOOSE_DRIVER = "postgres";
+
                         languages.go = {
                             enable = true;
                             enableHardeningWorkaround = true;
                         };
+
                         processes = {
                             go-server.exec = "go run .";
                         };
+
                         services.postgres = {
                             listen_addresses = "127.0.0.1";
                             enable = true;
                             createDatabase = false;
                         };
+
                         packages = with pkgs; [
                             sqlc
                             gopls
