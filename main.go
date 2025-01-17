@@ -41,13 +41,12 @@ func main() {
 		db:       dbQueries,
 		platform: platform,
 	}
-	// TODO
 	filesystemHandler := http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(fileSystemRoot))))
 	servemux.Handle("/app/", filesystemHandler)
 
 	servemux.HandleFunc("POST /api/users", cfg.userCreationHandler)
+	servemux.HandleFunc("POST /api/login", cfg.userLoginHandler)
 	servemux.HandleFunc("GET /api/healthz", healthResponseHandler)
-	//servemux.HandleFunc("POST /api/validate_chirp", validationResponseHandler)
 	servemux.HandleFunc("POST /api/chirps", cfg.createChirpHandler)
 	servemux.HandleFunc("GET /api/chirps", cfg.getAllChirpsHandler)
 	servemux.HandleFunc("GET /api/chirps/{id}", cfg.getChirpHandler)
