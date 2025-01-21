@@ -32,7 +32,7 @@
                         };
 
                         processes = {
-                            go-server.exec = "go run .";
+                            go-server.exec = "air";
                         };
 
                         services.postgres = {
@@ -46,6 +46,7 @@
                             gopls
                             delve
                             goose
+                            air
                             (nixpkgs.legacyPackages.${system}.buildGoModule rec {
                                 name = "bootdotdev";
                                 src = nixpkgs.legacyPackages.${system}.fetchFromGitHub {
