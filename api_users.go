@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +18,7 @@ type User struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 	Email          string    `json:"email"`
 	HashedPassword string    `json:"-"`
+	Token          string    `json:"token"`
 }
 
 func (cfg *apiConfig) userCreationHandler(w http.ResponseWriter, req *http.Request) {
@@ -62,8 +64,9 @@ func (cfg *apiConfig) userCreationHandler(w http.ResponseWriter, req *http.Reque
 
 func (cfg *apiConfig) userLoginHandler(w http.ResponseWriter, req *http.Request) {
 	type userLoginRequest struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		ExpiresInSeconds string `json:"expires_in_seconds"`
 	}
 	thisRequest := userLoginRequest{}
 	decoder := json.NewDecoder(req.Body)
@@ -85,10 +88,24 @@ func (cfg *apiConfig) userLoginHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	timeExpires, err := strconv.Atoi(thisRequest.ExpiresInSeconds)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Something went wrong: %s", err))
+	}
+	if 0 > timeExpires || timeExpires > 3600 {
+		timeExpires = 3600
+	}
+
+	token, err := auth.MakeJWT(user.ID, cfg.secret, time.Duration(timeExpires)*time.Second)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Something went wrong: %s", err))
+	}
+
 	respondWithJSON(w, 200, User{
 		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
+		Token:     token,
 	})
 }

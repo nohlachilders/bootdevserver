@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -59,5 +60,37 @@ func TestSecret(t *testing.T) {
 	_, err = ValidateJWT(token, incorrectSecret)
 	if err == nil {
 		t.Errorf("expected error, found none. incorrect token accepted")
+	}
+}
+
+func TestBearerTokenExtraction(t *testing.T) {
+	goodRequest, err := http.NewRequest("GET", "localhost", nil)
+	if err != nil {
+		t.Errorf("error found, expected none: %s", err)
+	}
+
+	goodRequest.Header.Add("Authorization", "Bearer token_string")
+	_, err = GetBearerToken(goodRequest.Header)
+	if err != nil {
+		t.Errorf("error found, expected none: %s", err)
+	}
+
+	badRequest, err := http.NewRequest("GET", "localhost", nil)
+	if err != nil {
+		t.Errorf("error found, expected none: %s", err)
+	}
+	badRequest.Header.Add("Authorization", "token_string")
+	_, err = GetBearerToken(badRequest.Header)
+	if err == nil {
+		t.Errorf("no error found, expected one")
+	}
+
+	emptyRequest, err := http.NewRequest("GET", "localhost", nil)
+	if err != nil {
+		t.Errorf("error found, expected none: %s", err)
+	}
+	_, err = GetBearerToken(emptyRequest.Header)
+	if err == nil {
+		t.Errorf("no error found, expected one")
 	}
 }

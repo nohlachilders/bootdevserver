@@ -47,13 +47,14 @@
                             delve
                             goose
                             air
+                            #openssl
                             (nixpkgs.legacyPackages.${system}.buildGoModule rec {
                                 name = "bootdotdev";
                                 src = nixpkgs.legacyPackages.${system}.fetchFromGitHub {
                                     owner = "bootdotdev";
                                     repo = "bootdev";
-                                    rev = "b283943";
-                                    sha256 = "sha256-ofXMlH1cvhfCFmgjZVMqt/kF8F9ZlD2CPH55d7dkMN8=";
+                                    rev = "6a13d006cf83a7e76627aacd71328da381138fa3";
+                                    sha256 = "sha256-7/yLxe/cQFAGKB2kdXom+O865MrVtzKuYUgjALFS1f4=";
                                 };
                                 vendorHash = "sha256-jhRoPXgfntDauInD+F7koCaJlX4XDj+jQSe/uEEYIMM=";
 

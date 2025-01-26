@@ -19,6 +19,10 @@ func main() {
 	if dbURL == "" {
 		log.Fatal("Environment variable DB_URL must be set")
 	}
+	secret := os.Getenv("CHIRPY_SECRET")
+	if dbURL == "" {
+		log.Fatal("Environment variable CHIRPY_SECRET must be set")
+	}
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %s", err)
@@ -40,6 +44,7 @@ func main() {
 	cfg := apiConfig{
 		db:       dbQueries,
 		platform: platform,
+		secret:   secret,
 	}
 	filesystemHandler := http.StripPrefix("/app", cfg.middlewareMetricsInc(http.FileServer(http.Dir(fileSystemRoot))))
 	servemux.Handle("/app/", filesystemHandler)
@@ -53,7 +58,8 @@ func main() {
 
 	servemux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	servemux.HandleFunc("GET /admin/metrics", cfg.metricsResponseHandler)
-	fmt.Printf("Serving on port %s", port)
+
+	fmt.Printf("Serving on port %s...\n", port)
 	log.Fatal(server.ListenAndServe())
 }
 
@@ -61,4 +67,5 @@ type apiConfig struct {
 	platform       string
 	fileserverHits atomic.Int32
 	db             *database.Queries
+	secret         string
 }
