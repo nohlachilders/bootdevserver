@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -66,7 +65,7 @@ func (cfg *apiConfig) userLoginHandler(w http.ResponseWriter, req *http.Request)
 	type userLoginRequest struct {
 		Email            string `json:"email"`
 		Password         string `json:"password"`
-		ExpiresInSeconds string `json:"expires_in_seconds"`
+		ExpiresInSeconds int    `json:"expires_in_seconds"`
 	}
 	thisRequest := userLoginRequest{}
 	decoder := json.NewDecoder(req.Body)
@@ -88,11 +87,8 @@ func (cfg *apiConfig) userLoginHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	timeExpires, err := strconv.Atoi(thisRequest.ExpiresInSeconds)
-	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Something went wrong: %s", err))
-	}
-	if 0 > timeExpires || timeExpires > 3600 {
+	timeExpires := thisRequest.ExpiresInSeconds
+	if 0 >= timeExpires || timeExpires >= 3600 {
 		timeExpires = 3600
 	}
 

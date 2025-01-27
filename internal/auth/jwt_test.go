@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -64,22 +65,40 @@ func TestSecret(t *testing.T) {
 }
 
 func TestBearerTokenExtraction(t *testing.T) {
+	tokenSecret := "test"
+	id, err := uuid.NewUUID()
+	if err != nil {
+		t.Error("error creating uuid")
+	}
+	token, err := MakeJWT(id, tokenSecret, time.Minute)
+	if err != nil {
+		t.Error("error creating token")
+	}
+
 	goodRequest, err := http.NewRequest("GET", "localhost", nil)
 	if err != nil {
 		t.Errorf("error found, expected none: %s", err)
 	}
 
-	goodRequest.Header.Add("Authorization", "Bearer token_string")
+	goodRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
 	_, err = GetBearerToken(goodRequest.Header)
 	if err != nil {
 		t.Errorf("error found, expected none: %s", err)
+	}
+
+	parsedId, err := ValidateJWT(token, tokenSecret)
+	if err != nil {
+		t.Errorf("error validating token: %v", err)
+	}
+	if parsedId != id {
+		t.Error("parsed id does not match")
 	}
 
 	badRequest, err := http.NewRequest("GET", "localhost", nil)
 	if err != nil {
 		t.Errorf("error found, expected none: %s", err)
 	}
-	badRequest.Header.Add("Authorization", "token_string")
+	badRequest.Header.Add("Authorization", "dummy text")
 	_, err = GetBearerToken(badRequest.Header)
 	if err == nil {
 		t.Errorf("no error found, expected one")

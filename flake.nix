@@ -47,7 +47,7 @@
                             delve
                             goose
                             air
-                            #openssl
+                            openssl
                             (nixpkgs.legacyPackages.${system}.buildGoModule rec {
                                 name = "bootdotdev";
                                 src = nixpkgs.legacyPackages.${system}.fetchFromGitHub {

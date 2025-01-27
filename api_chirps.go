@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/nohlachilders/bootdevserver/internal/auth"
 	"github.com/nohlachilders/bootdevserver/internal/database"
 )
 
@@ -59,8 +61,7 @@ func (cfg *apiConfig) getChirpHandler(w http.ResponseWriter, req *http.Request) 
 
 func (cfg *apiConfig) createChirpHandler(w http.ResponseWriter, req *http.Request) {
 	type validationRequest struct {
-		Body   string        `json:"body"`
-		UserId uuid.NullUUID `json:"user_id"`
+		Body string `json:"body"`
 	}
 	thisRequest := validationRequest{}
 
@@ -76,15 +77,25 @@ func (cfg *apiConfig) createChirpHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if thisRequest.UserId.Valid == false {
-		respondWithError(w, 400, "User ID not valid")
+	token, err := auth.GetBearerToken(req.Header)
+	if err != nil {
+		respondWithError(w, 500, "Something went wrong")
+		return
+	}
+	parsedUUID, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		respondWithError(w, 501, fmt.Sprintf("%v", parsedUUID))
 		return
 	}
 
+	packedNullUUID := uuid.NullUUID{
+		UUID:  parsedUUID,
+		Valid: true,
+	}
 	cleanedBody, _ := cleanBody(thisRequest.Body)
 	params := database.CreateChirpParams{
 		Body:   cleanedBody,
-		UserID: thisRequest.UserId,
+		UserID: packedNullUUID,
 	}
 	chirp, err := cfg.db.CreateChirp(req.Context(), params)
 	respondWithJSON(w, 201, Chirp{
