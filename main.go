@@ -50,6 +50,7 @@ func main() {
 	servemux.Handle("/app/", filesystemHandler)
 
 	servemux.HandleFunc("POST /api/users", cfg.userCreationHandler)
+	servemux.HandleFunc("PUT /api/users", cfg.userUpdateHandler)
 	servemux.HandleFunc("POST /api/login", cfg.userLoginHandler)
 	servemux.HandleFunc("POST /api/refresh", cfg.userRefreshHandler)
 	servemux.HandleFunc("POST /api/revoke", cfg.userRevokeHandler)
@@ -57,6 +58,7 @@ func main() {
 	servemux.HandleFunc("POST /api/chirps", cfg.createChirpHandler)
 	servemux.HandleFunc("GET /api/chirps", cfg.getAllChirpsHandler)
 	servemux.HandleFunc("GET /api/chirps/{id}", cfg.getChirpHandler)
+	servemux.HandleFunc("DELETE /api/chirps/{id}", cfg.deleteChirpHandler)
 
 	servemux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	servemux.HandleFunc("GET /admin/metrics", cfg.metricsResponseHandler)

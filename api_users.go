@@ -179,3 +179,55 @@ func (cfg *apiConfig) userRevokeHandler(w http.ResponseWriter, req *http.Request
 	// respond with 204
 	w.WriteHeader(204)
 }
+
+func (cfg *apiConfig) userUpdateHandler(w http.ResponseWriter, req *http.Request) {
+	type userUpdateRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	thisRequest := userUpdateRequest{}
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&thisRequest)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Something went wrong: %s", err))
+		return
+	}
+	if thisRequest.Email == "" || thisRequest.Password == "" {
+		respondWithError(w, 400, "Email and password are required")
+		return
+	}
+	hashed, err := auth.HashPassword(thisRequest.Password)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Something went wrong: %s", err))
+		return
+	}
+
+	token, err := auth.GetBearerToken(req.Header)
+	if err != nil {
+		respondWithError(w, 401, fmt.Sprintf("Something went wrong: %s", err))
+		return
+	}
+
+	userID, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+
+	params := database.UpdateUserInfoParams{
+		ID:             userID,
+		Email:          thisRequest.Email,
+		HashedPassword: hashed,
+	}
+	user, err := cfg.db.UpdateUserInfo(req.Context(), params)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Something went wrong: %s", err))
+		return
+	}
+	respondWithJSON(w, 200, User{
+		ID:        user.ID,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Email:     user.Email,
+	})
+}

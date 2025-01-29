@@ -47,7 +47,7 @@ func (cfg *apiConfig) getChirpHandler(w http.ResponseWriter, req *http.Request) 
 	}
 	chirp, err := cfg.db.GetChirp(req.Context(), thisId)
 	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 404, "Not Found")
 		return
 	}
 	respondWithJSON(w, 200, Chirp{
@@ -127,4 +127,38 @@ func cleanBody(body string) (cleaned_body string, was_cleaned bool) {
 	was_cleaned = !(cleaned_body == body)
 
 	return cleaned_body, was_cleaned
+}
+
+func (cfg *apiConfig) deleteChirpHandler(w http.ResponseWriter, req *http.Request) {
+	thisId, err := uuid.Parse(req.PathValue("id"))
+	if err != nil {
+		respondWithError(w, 400, "Invalid ID")
+		return
+	}
+	chirp, err := cfg.db.GetChirp(req.Context(), thisId)
+	if err != nil {
+		respondWithError(w, 404, "Not Found")
+		return
+	}
+	token, err := auth.GetBearerToken(req.Header)
+	if err != nil {
+		w.WriteHeader(401)
+		return
+	}
+	parsedUUID, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		respondWithError(w, 401, fmt.Sprintf("%v", parsedUUID))
+		return
+	}
+	if chirp.UserID.UUID != parsedUUID {
+		w.WriteHeader(403)
+		return
+	}
+	err = cfg.db.DeleteChirp(req.Context(), thisId)
+	if err != nil {
+		respondWithError(w, 404, "Not Found")
+		return
+	}
+
+	w.WriteHeader(204)
 }
