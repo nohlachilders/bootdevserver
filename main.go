@@ -51,6 +51,8 @@ func main() {
 
 	servemux.HandleFunc("POST /api/users", cfg.userCreationHandler)
 	servemux.HandleFunc("POST /api/login", cfg.userLoginHandler)
+	servemux.HandleFunc("POST /api/refresh", cfg.userRefreshHandler)
+	servemux.HandleFunc("POST /api/revoke", cfg.userRevokeHandler)
 	servemux.HandleFunc("GET /api/healthz", healthResponseHandler)
 	servemux.HandleFunc("POST /api/chirps", cfg.createChirpHandler)
 	servemux.HandleFunc("GET /api/chirps", cfg.getAllChirpsHandler)

@@ -53,8 +53,8 @@
                                 src = nixpkgs.legacyPackages.${system}.fetchFromGitHub {
                                     owner = "bootdotdev";
                                     repo = "bootdev";
-                                    rev = "6a13d006cf83a7e76627aacd71328da381138fa3";
-                                    sha256 = "sha256-7/yLxe/cQFAGKB2kdXom+O865MrVtzKuYUgjALFS1f4=";
+                                    rev = "950affe77fee1cd8b15bf02dcf9d1bcfc08ebde7";
+                                    sha256 = "sha256-e6LUAcG0tCTfRWGkJ85jIfjcr4/1fIP61rPPUTDrkjg=";
                                 };
                                 vendorHash = "sha256-jhRoPXgfntDauInD+F7koCaJlX4XDj+jQSe/uEEYIMM=";
 

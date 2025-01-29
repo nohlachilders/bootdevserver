@@ -84,7 +84,7 @@ func (cfg *apiConfig) createChirpHandler(w http.ResponseWriter, req *http.Reques
 	}
 	parsedUUID, err := auth.ValidateJWT(token, cfg.secret)
 	if err != nil {
-		respondWithError(w, 501, fmt.Sprintf("%v", parsedUUID))
+		respondWithError(w, 401, fmt.Sprintf("%v", parsedUUID))
 		return
 	}
 
