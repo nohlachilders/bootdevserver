@@ -20,7 +20,7 @@ func main() {
 		log.Fatal("Environment variable DB_URL must be set")
 	}
 	secret := os.Getenv("CHIRPY_SECRET")
-	if dbURL == "" {
+	if secret == "" {
 		log.Fatal("Environment variable CHIRPY_SECRET must be set")
 	}
 	db, err := sql.Open("postgres", dbURL)
