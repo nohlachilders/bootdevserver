@@ -19,6 +19,7 @@ type User struct {
 	HashedPassword string    `json:"-"`
 	Token          string    `json:"token,omitempty"`
 	RefreshToken   string    `json:"refresh_token,omitempty"`
+	IsRed          bool      `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) userCreationHandler(w http.ResponseWriter, req *http.Request) {
@@ -59,6 +60,7 @@ func (cfg *apiConfig) userCreationHandler(w http.ResponseWriter, req *http.Reque
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
+		IsRed:     user.IsRed,
 	})
 }
 
@@ -117,6 +119,7 @@ func (cfg *apiConfig) userLoginHandler(w http.ResponseWriter, req *http.Request)
 		Email:        user.Email,
 		Token:        token,
 		RefreshToken: refresh.Token,
+		IsRed:        user.IsRed,
 	})
 }
 
@@ -229,5 +232,6 @@ func (cfg *apiConfig) userUpdateHandler(w http.ResponseWriter, req *http.Request
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
+		IsRed:     user.IsRed,
 	})
 }

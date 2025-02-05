@@ -60,6 +60,8 @@ func main() {
 	servemux.HandleFunc("GET /api/chirps/{id}", cfg.getChirpHandler)
 	servemux.HandleFunc("DELETE /api/chirps/{id}", cfg.deleteChirpHandler)
 
+	servemux.HandleFunc("POST /api/polka/webhooks", cfg.updateRedHandler)
+
 	servemux.HandleFunc("POST /admin/reset", cfg.resetHandler)
 	servemux.HandleFunc("GET /admin/metrics", cfg.metricsResponseHandler)
 
