@@ -42,7 +42,7 @@
                         };
 
                         packages = with pkgs; [
-                            postman
+                            #postman
                             sqlc
                             gopls
                             delve

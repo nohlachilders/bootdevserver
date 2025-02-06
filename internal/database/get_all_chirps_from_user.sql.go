@@ -13,17 +13,12 @@ import (
 
 const getAllChirpsFromUser = `-- name: GetAllChirpsFromUser :many
 select id, created_at, updated_at, body, user_id from chirps
-where id = $1 or $2 = TRUE
+where user_id = $1
 order by created_at asc
 `
 
-type GetAllChirpsFromUserParams struct {
-	ID      uuid.UUID
-	Column2 interface{}
-}
-
-func (q *Queries) GetAllChirpsFromUser(ctx context.Context, arg GetAllChirpsFromUserParams) ([]Chirp, error) {
-	rows, err := q.db.QueryContext(ctx, getAllChirpsFromUser, arg.ID, arg.Column2)
+func (q *Queries) GetAllChirpsFromUser(ctx context.Context, userID uuid.NullUUID) ([]Chirp, error) {
+	rows, err := q.db.QueryContext(ctx, getAllChirpsFromUser, userID)
 	if err != nil {
 		return nil, err
 	}

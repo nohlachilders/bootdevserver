@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,11 +22,29 @@ type Chirp struct {
 }
 
 func (cfg *apiConfig) getAllChirpsHandler(w http.ResponseWriter, req *http.Request) {
-	chirps, err := cfg.db.GetAllChirps(req.Context())
-	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
-		return
+	chirps := []database.Chirp{}
+	var err error
+	user := req.URL.Query().Get("author_id")
+	switch user == "" {
+	case true:
+		chirps, err = cfg.db.GetAllChirps(req.Context())
+		if err != nil {
+			respondWithError(w, 500, "Something went wrong")
+			return
+		}
+	case false:
+		userID, err := uuid.Parse(user)
+		if err != nil {
+			respondWithError(w, 500, "Something went wrong")
+			return
+		}
+		chirps, err = cfg.db.GetAllChirpsFromUser(req.Context(), uuid.NullUUID{UUID: userID, Valid: true})
+		if err != nil {
+			respondWithError(w, 500, "Something went wrong")
+			return
+		}
 	}
+
 	thisChirps := make([]Chirp, len(chirps))
 	for i, chirp := range chirps {
 		thisChirps[i] = Chirp{
@@ -35,6 +54,14 @@ func (cfg *apiConfig) getAllChirpsHandler(w http.ResponseWriter, req *http.Reque
 			Body:      chirp.Body,
 			UserID:    chirp.UserID,
 		}
+	}
+
+	sortBy := req.URL.Query().Get("sort")
+	switch sortBy == "desc" {
+	case true:
+		sort.Slice(thisChirps, func(j, i int) bool { return chirps[j].CreatedAt.After(chirps[i].CreatedAt) })
+	case false:
+		sort.Slice(thisChirps, func(i, j int) bool { return chirps[j].CreatedAt.After(chirps[i].CreatedAt) })
 	}
 	respondWithJSON(w, 200, thisChirps)
 }
