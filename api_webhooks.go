@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/nohlachilders/bootdevserver/internal/auth"
 )
 
 func (cfg *apiConfig) updateRedHandler(w http.ResponseWriter, req *http.Request) {
@@ -23,7 +24,13 @@ func (cfg *apiConfig) updateRedHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	if thisRequest.Event != "user.upgrade" {
+	key, err := auth.GetAPIKey(req.Header)
+	if err != nil || key != cfg.polkaSecret {
+		respondWithError(w, 401, fmt.Sprintf("Unauthorized"))
+		return
+	}
+
+	if thisRequest.Event != "user.upgraded" {
 		w.WriteHeader(204)
 		return
 	}
@@ -40,5 +47,11 @@ func (cfg *apiConfig) updateRedHandler(w http.ResponseWriter, req *http.Request)
 	}
 	user.Email = ""
 
-	w.WriteHeader(204)
+	respondWithJSON(w, 204, User{
+		ID:        user.ID,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Email:     user.Email,
+		IsRed:     user.IsRed,
+	})
 }
